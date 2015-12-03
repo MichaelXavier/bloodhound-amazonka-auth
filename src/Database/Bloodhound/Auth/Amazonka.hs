@@ -7,7 +7,6 @@ module Database.Bloodhound.Auth.Amazonka
 
 -------------------------------------------------------------------------------
 import           Control.Exception
-import           Control.Monad.IO.Class
 import           Data.Bifunctor
 import           Data.Time.Clock
 import           Data.Typeable
@@ -38,9 +37,9 @@ import           Network.HTTP.Types.Method   (parseMethod)
 --    mgr <- newManager tlsManagerSettings
 --    let bhe = (mkBHEnv server mgr) { bhRequestHook = hook }
 -- @
-amazonkaAuthHook :: MonadBH m => AuthEnv -> Region -> Request -> m (Either EsAmazonkaAuthError Request)
+amazonkaAuthHook :: AuthEnv -> Region -> Request -> IO (Either EsAmazonkaAuthError Request)
 amazonkaAuthHook ae reg req = do
-  now <- liftIO getCurrentTime
+  now <- getCurrentTime
   case toAwsRequest req reg of
     Right req' -> return (Right (sgRequest (algo req' ae reg now)))
     Left e -> return (Left e)
