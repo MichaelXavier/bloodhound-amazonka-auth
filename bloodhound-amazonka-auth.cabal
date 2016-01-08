@@ -21,6 +21,7 @@ flag lib-Werror
 library
   hs-source-dirs:      src
   exposed-modules:     Database.Bloodhound.Auth.Amazonka
+                       Database.Bloodhound.Auth.Amazonka.Internal
   build-depends:       base >= 4.7 && < 5
                      , bloodhound >= 0.10
                      , http-client
@@ -30,12 +31,33 @@ library
                      , transformers
                      , http-types
                      , exceptions
+                     , uri-bytestring
   default-language:    Haskell2010
 
   if flag(lib-Werror)
     ghc-options: -Werror
 
   ghc-options: -Wall
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:     test
+  default-language:   Haskell2010
+
+  build-depends:    base
+                  , bloodhound-amazonka-auth
+                  , tasty
+                  , tasty-hunit
+                  , amazonka-core
+                  , http-client
+                  , time
+
+  if flag(lib-Werror)
+    ghc-options: -Werror
+
+  ghc-options: -Wall
+
 
 source-repository head
   type:     git
