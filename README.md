@@ -4,6 +4,14 @@
 Adds convenient Amazon ElasticSearch Service authentication to
 Bloodhound.
 
-## Status
 
-Not released yet. Uses a fork of bloodhound for the time being.
+# Usage
+
+```haskell
+env <- newEnv region Discover
+let auth = env ^. envAuth
+let hook req = withAuth auth $ ae ->
+                 either (liftIO . throwIO) return =<< amazonkaAuthHook ae region req
+mgr <- newManager tlsManagerSettings
+let bhe = (mkBHEnv server mgr) { bhRequestHook = hook }
+```
