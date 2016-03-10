@@ -23,7 +23,7 @@ library
   exposed-modules:     Database.Bloodhound.Auth.Amazonka
                        Database.Bloodhound.Auth.Amazonka.Internal
   build-depends:       base >= 4.7 && < 5
-                     , bloodhound >= 0.10
+                     , bloodhound >= 0.11
                      , http-client
                      , time
                      , amazonka-core >= 1.3.0 && < 1.4
