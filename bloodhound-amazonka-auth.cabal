@@ -52,6 +52,13 @@ test-suite test
                   , amazonka-core
                   , http-client
                   , time
+                  , bloodhound
+                  , text
+                  , amazonka
+                  , amazonka-core
+                  , http-client-tls
+                  , lens
+                  , aeson
 
   if flag(lib-Werror)
     ghc-options: -Werror
