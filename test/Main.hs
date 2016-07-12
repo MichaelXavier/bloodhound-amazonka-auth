@@ -98,7 +98,7 @@ amazonkaAuthHookTests :: TestTree
 amazonkaAuthHookTests = testGroup "amazonkaAuthHook"
   [
     testCase "does not mangle query parameters" $ do
-      req <- parseUrl "http://localhost:9200/foo/foo/_search?scroll=1m&search_type=scan"
+      req <- parseUrlThrow "http://localhost:9200/foo/foo/_search?scroll=1m&search_type=scan"
       let ae = AuthEnv (AccessKey "access key") (SecretKey "secret key") Nothing Nothing
       let now = posixSecondsToUTCTime 0
       let Right res = amazonkaAuthHook' ae NorthVirginia req now
