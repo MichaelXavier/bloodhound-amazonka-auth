@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main
     ( main
     ) where
@@ -7,7 +8,7 @@ module Main
 -------------------------------------------------------------------------------
 import           Control.Exception
 import           Control.Lens                               (set, view)
-import           Control.Monad
+import           Control.Retry
 import           Data.Aeson
 import           Data.Monoid
 import qualified Data.Proxy                                 as P
@@ -45,15 +46,15 @@ tests (IntegrationServer mServer) = testGroup "bloodhound-amazonka-auth" (shared
 
 -------------------------------------------------------------------------------
 integrationTests :: Server -> TestTree
-integrationTests server = testGroup "integration"
+integrationTests server = withResource setup teardown $ \mkEnv -> testGroup "integration"
   [
-    withEnv $ \mkEnv -> testCase "authenticates request" $ do
+    testCase "authenticates request" $ do
       env <- mkEnv
       exists <- runBH env $ indexExists testIndex
       exists @?= True
   -- Index patterns add a * to the path, which can wreak havoc if not
   -- accounted for in AWS V4 signing.
-  , withEnv $ \mkEnv -> testCase "authenticates when using index patterns" $ do
+  , testCase "authenticates when using index patterns" $ do
       env <- mkEnv
       let search = Search {
             queryBody = Nothing
@@ -74,7 +75,6 @@ integrationTests server = testGroup "integration"
         Left e -> assertFailure (show e)
   ]
   where
-    withEnv = withResource setup teardown
     testIndex = IndexName "bloodhound-amazonka-auth-test"
     testIndexSplat = IndexName "bloodhound-amazonka-auth-test*"
     ixs = IndexSettings (ShardCount 1) (ReplicaCount 0)
@@ -86,10 +86,11 @@ integrationTests server = testGroup "integration"
       let hook req = withAuth auth $ \authEnv -> either throwIO return =<< amazonkaAuthHook authEnv region req
       let bhe = (mkBHEnv server mgr) { bhRequestHook = hook }
       _ <- runBH bhe (createIndex ixs testIndex)
+      True <- retrying (constantDelay 5000 <> limitRetries 5) (\_ exists -> return (not exists)) (\_ -> runBH bhe (indexExists testIndex))
       return bhe
     -- could make this customizable if we cared to
     region = NorthVirginia
-    teardown bhe = void (runBH bhe (deleteIndex testIndex))
+    teardown bhe = either (\(_ :: SomeException) -> ()) (const ()) <$> try (runBH bhe (deleteIndex testIndex))
 
 
 -------------------------------------------------------------------------------

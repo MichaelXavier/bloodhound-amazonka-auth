@@ -59,7 +59,7 @@ test-suite test
                   , http-client-tls
                   , lens
                   , aeson
-
+                  , retry
   if flag(lib-Werror)
     ghc-options: -Werror
 

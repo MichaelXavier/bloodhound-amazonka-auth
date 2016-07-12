@@ -12,13 +12,15 @@ import           Network.AWS.Data.Body
 import           Network.AWS.Data.ByteString
 import           Network.AWS.Data.Path
 import           Network.AWS.Data.Query
-import qualified Network.AWS.Data.Query      as A
-import           Network.AWS.ElasticSearch   (elasticSearch)
-import           Network.AWS.Types           (AuthEnv, Region, sgRequest,
-                                              sgSign)
-import qualified Network.AWS.Types           as A
+import qualified Network.AWS.Data.Query                            as A
+import           Network.AWS.ElasticSearch                         (elasticSearch)
+import           Network.AWS.Types                                 (AuthEnv,
+                                                                    Region,
+                                                                    sgRequest,
+                                                                    sgSign)
+import qualified Network.AWS.Types                                 as A
 import           Network.HTTP.Client
-import           Network.HTTP.Types.Method   (parseMethod)
+import           Network.HTTP.Types.Method                         (parseMethod)
 import           URI.ByteString
 -------------------------------------------------------------------------------
 
@@ -44,7 +46,12 @@ amazonkaAuthHook ae reg req = amazonkaAuthHook' ae reg req <$> getCurrentTime
 amazonkaAuthHook' :: AuthEnv -> Region -> Request -> UTCTime -> Either EsAmazonkaAuthError Request
 amazonkaAuthHook' ae reg req now = toReq <$> toAwsRequest req reg
   where algo = sgSign (A._svcSigner elasticSearch)
-        toReq req' = sgRequest (algo req' ae reg now)
+        toReq req' = decodePath (sgRequest (algo req' ae reg now))
+        -- We decode the path because for some reason AWS ES actually
+        -- doesn't want the path url encoded. If you do, it will
+        -- expect double-encoding for the canonical uri. If you
+        -- double, it will expect triple and so-on.
+        decodePath x = x { path = urlDecode True (path x)}
 
 
 -------------------------------------------------------------------------------
