@@ -3,8 +3,8 @@ module Database.Bloodhound.Auth.Amazonka.Internal where
 
 
 -------------------------------------------------------------------------------
+import           Control.Applicative         as A
 import           Control.Exception
-import           Data.Bifunctor
 import           Data.Time.Clock
 import           Data.Typeable
 import           Database.Bloodhound.Types
@@ -12,15 +12,13 @@ import           Network.AWS.Data.Body
 import           Network.AWS.Data.ByteString
 import           Network.AWS.Data.Path
 import           Network.AWS.Data.Query
-import qualified Network.AWS.Data.Query                            as A
-import           Network.AWS.ElasticSearch                         (elasticSearch)
-import           Network.AWS.Types                                 (AuthEnv,
-                                                                    Region,
-                                                                    sgRequest,
-                                                                    sgSign)
-import qualified Network.AWS.Types                                 as A
+import qualified Network.AWS.Data.Query      as A
+import           Network.AWS.ElasticSearch   (elasticSearch)
+import           Network.AWS.Types           (AuthEnv, Region, sgRequest,
+                                              sgSign)
+import qualified Network.AWS.Types           as A
 import           Network.HTTP.Client
-import           Network.HTTP.Types.Method                         (parseMethod)
+import           Network.HTTP.Types.Method   (parseMethod)
 import           URI.ByteString
 -------------------------------------------------------------------------------
 
@@ -39,7 +37,7 @@ import           URI.ByteString
 --    let bhe = (mkBHEnv server mgr) { bhRequestHook = hook }
 -- @
 amazonkaAuthHook :: AuthEnv -> Region -> Request -> IO (Either EsAmazonkaAuthError Request)
-amazonkaAuthHook ae reg req = amazonkaAuthHook' ae reg req <$> getCurrentTime
+amazonkaAuthHook ae reg req = amazonkaAuthHook' ae reg req A.<$> getCurrentTime
 
 
 -------------------------------------------------------------------------------
@@ -57,7 +55,7 @@ amazonkaAuthHook' ae reg req now = toReq <$> toAwsRequest req reg
 -------------------------------------------------------------------------------
 toAwsRequest :: Request -> Region -> Either EsAmazonkaAuthError (A.Request a)
 toAwsRequest r reg = do
-  meth <- first (const badMethod) (parseMethod bsMeth)
+  meth <- either (const (Left badMethod)) Right (parseMethod bsMeth)
   rqb <- toRQBody (requestBody r)
   q <- toQS (queryString r)
   return (A.Request { A._rqService = svc
