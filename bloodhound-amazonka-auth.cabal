@@ -1,5 +1,5 @@
 name:                bloodhound-amazonka-auth
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Adds convenient Amazon ElasticSearch Service authentication to Bloodhound.
 description:         Please see README.md
 homepage:            http://github.com/MichaelXavier/bloodhound-amazonka-auth#readme
