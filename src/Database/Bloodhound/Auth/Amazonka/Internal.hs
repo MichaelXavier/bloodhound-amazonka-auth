@@ -44,12 +44,13 @@ amazonkaAuthHook ae reg req = amazonkaAuthHook' ae reg req A.<$> getCurrentTime
 amazonkaAuthHook' :: AuthEnv -> Region -> Request -> UTCTime -> Either EsAmazonkaAuthError Request
 amazonkaAuthHook' ae reg req now = toReq <$> toAwsRequest req reg
   where algo = sgSign (A._svcSigner elasticSearch)
-        toReq req' = decodePath (sgRequest (algo req' ae reg now))
+        toReq req' = restoreTimeout (decodePath (sgRequest (algo req' ae reg now)))
         -- We decode the path because for some reason AWS ES actually
         -- doesn't want the path url encoded. If you do, it will
         -- expect double-encoding for the canonical uri. If you
         -- double, it will expect triple and so-on.
         decodePath x = x { path = urlDecode True (path x)}
+        restoreTimeout x = x { responseTimeout = responseTimeout req }
 
 
 -------------------------------------------------------------------------------
