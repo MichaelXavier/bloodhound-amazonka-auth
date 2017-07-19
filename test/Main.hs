@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main
@@ -14,7 +15,11 @@ import           Data.Monoid
 import qualified Data.Proxy                                 as P
 import qualified Data.Text                                  as T
 import           Data.Time.Clock.POSIX
+#if MIN_VERSION_bloodhound(0, 13, 0)
+import           Database.V1.Bloodhound
+#else
 import           Database.Bloodhound
+#endif
 import           Network.AWS
 import           Network.AWS.Env
 import           Network.HTTP.Client
@@ -72,7 +77,7 @@ integrationTests server = withResource setup teardown $ \mkEnv -> testGroup "int
       res <- parseEsResponse =<< runBH env (searchByIndex testIndexSplat search)
       case (res :: Either EsError (SearchResult Value)) of
         Right _ -> return ()
-        Left e -> assertFailure (show e)
+        Left e  -> assertFailure (show e)
   ]
   where
     testIndex = IndexName "bloodhound-amazonka-auth-test"
@@ -81,7 +86,7 @@ integrationTests server = withResource setup teardown $ \mkEnv -> testGroup "int
     setup = do
       mgr <- newManager tlsManagerSettings
       lgr <- newLogger Debug stdout
-      env <- set envLogger lgr<$> newEnvWith region Discover Nothing mgr
+      env <- set envRegion region . set envLogger lgr<$> newEnvWith Discover Nothing mgr
       let auth = view envAuth env
       let hook req = withAuth auth $ \authEnv -> either throwIO return =<< amazonkaAuthHook authEnv region req
       let bhe = (mkBHEnv server mgr) { bhRequestHook = hook }
@@ -118,6 +123,6 @@ newtype IntegrationServer = IntegrationServer (Maybe Server)
 instance IsOption IntegrationServer where
   defaultValue = IntegrationServer Nothing
   parseValue "" = return (IntegrationServer Nothing)
-  parseValue s = return (IntegrationServer (Just (Server (T.pack s))))
+  parseValue s  = return (IntegrationServer (Just (Server (T.pack s))))
   optionName = return "integration-server"
   optionHelp = return "If supplied, tests against a real AWS ES cluster (fees may apply). Uses the standard amazonka methods for discovering credentials."

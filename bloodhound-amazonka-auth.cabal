@@ -54,7 +54,7 @@ test-suite test
                   , time
                   , bloodhound
                   , text
-                  , amazonka
+                  , amazonka >= 1.4.0
                   , amazonka-core
                   , http-client-tls
                   , lens

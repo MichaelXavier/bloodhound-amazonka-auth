@@ -7,7 +7,6 @@ import           Control.Applicative         as A
 import           Control.Exception
 import           Data.Time.Clock
 import           Data.Typeable
-import           Database.Bloodhound.Types
 import           Network.AWS.Data.Body
 import           Network.AWS.Data.ByteString
 import           Network.AWS.Data.Path
@@ -18,7 +17,7 @@ import           Network.AWS.Types           (AuthEnv, Region, sgRequest,
                                               sgSign)
 import qualified Network.AWS.Types           as A
 import           Network.HTTP.Client
-import           Network.HTTP.Types.Method   (parseMethod)
+import           Network.HTTP.Types.Method   (Method, parseMethod)
 import           URI.ByteString
 -------------------------------------------------------------------------------
 
@@ -75,7 +74,7 @@ toAwsRequest r reg = do
 toQS :: ByteString -> Either EsAmazonkaAuthError A.QueryString
 toQS bs = case parseRelativeRef laxURIParserOptions bs of
             Right rr -> Right (go (rrQuery rr))
-            Left _ -> Left MalformedQueryString
+            Left _   -> Left MalformedQueryString
   where go q = QList [ QPair k (QValue (Just v)) | (k, v) <- queryPairs q]
 
 -------------------------------------------------------------------------------
@@ -98,5 +97,5 @@ instance Exception EsAmazonkaAuthError
 -------------------------------------------------------------------------------
 toRQBody :: RequestBody -> Either EsAmazonkaAuthError RqBody
 toRQBody (RequestBodyLBS b) = Right (toBody b)
-toRQBody (RequestBodyBS b) = Right (toBody b)
-toRQBody _ = Left StreamingBodyNotSupported
+toRQBody (RequestBodyBS b)  = Right (toBody b)
+toRQBody _                  = Left StreamingBodyNotSupported
