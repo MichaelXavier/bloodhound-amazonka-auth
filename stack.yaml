@@ -1,3 +1,4 @@
+# We can't get on lts-11 with amazonka right now due to conduit compatibility
 resolver: lts-10.10
 packages:
 - '.'
