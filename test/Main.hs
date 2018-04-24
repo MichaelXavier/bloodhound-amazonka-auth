@@ -73,6 +73,9 @@ integrationTests server = withResource setup teardown $ \mkEnv -> testGroup "int
           , searchType = SearchTypeQueryThenFetch
           , fields = Nothing
           , source = Nothing
+#if MIN_VERSION_bloodhound(0, 15, 0)
+          , suggestBody = Nothing
+#endif
           }
       res <- parseEsResponse =<< runBH env (searchByIndex testIndexSplat search)
       case (res :: Either EsError (SearchResult Value)) of
@@ -104,7 +107,7 @@ amazonkaAuthHookTests = testGroup "amazonkaAuthHook"
   [
     testCase "does not mangle query parameters" $ do
       req <- parseUrlThrow "http://localhost:9200/foo/foo/_search?scroll=1m&search_type=scan"
-      let ae = AuthEnv (AccessKey "access key") (SecretKey "secret key") Nothing Nothing
+      let ae = AuthEnv (AccessKey "access key") "secret key" Nothing Nothing
       let now = posixSecondsToUTCTime 0
       let Right res = amazonkaAuthHook' ae NorthVirginia req now
       secure res @?= False
