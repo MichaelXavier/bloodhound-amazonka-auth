@@ -1,3 +1,6 @@
+0.1.2.1
+* Allow newer dependencies, including bloodhound.
+
 0.1.2.0
 * Fix bug where amazonka would override user-specified timeouts.
 * Support newer versions of bloodhound.
